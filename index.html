@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NETWORK CHALLENGE 🌐</title>
+<style>
+/* ==================================================================
+   NETWORK CHALLENGE — Quiz de tipos de redes
+   Paleta: fondo abismo (#070B18) · cian señal (#22E0FF) ·
+   magenta paquete (#FF3D9A) · verde enlace (#4FFFB0) · ámbar alerta (#FFC24B)
+   ================================================================== */
+
+:root{
+  --bg:#070B18;
+  --bg2:#0C1428;
+  --panel:rgba(20,32,58,.55);
+  --panel-brd:rgba(90,140,220,.22);
+  --cyan:#22E0FF;
+  --magenta:#FF3D9A;
+  --green:#4FFFB0;
+  --amber:#FFC24B;
+  --red:#FF5C6C;
+  --ink:#EAF2FF;
+  --ink-dim:#8DA2C8;
+  --font-display:'Orbitron','Segoe UI',system-ui,sans-serif;
+  --font-body:'Rajdhani','Segoe UI',system-ui,sans-serif;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--ink);
+  min-height:100dvh;
+  overflow-x:hidden;
+  position:relative;
+}
+
+/* ---- Fondo animado tipo malla de red ---- */
+#grid-bg{position:fixed;inset:0;z-index:0;opacity:.9;pointer-events:none}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1200px 700px at 15% -10%, rgba(34,224,255,.14), transparent 60%),
+    radial-gradient(1000px 600px at 100% 110%, rgba(255,61,154,.12), transparent 60%),
+    linear-gradient(180deg,var(--bg) 0%, var(--bg2) 100%);
+}
+
+.app{position:relative;z-index:2;max-width:820px;margin:0 auto;padding:24px 18px 48px;min-height:100dvh;display:flex;flex-direction:column}
+
+/* ---------- utilidades ---------- */
+.glass{
+  background:var(--panel);
+  border:1px solid var(--panel-brd);
+  border-radius:20px;
+  backdrop-filter:blur(14px) saturate(140%);
+  -webkit-backdrop-filter:blur(14px) saturate(140%);
+  box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.screen{display:none;animation:screenIn .5s cubic-bezier(.2,.8,.2,1)}
+.screen.active{display:block}
+@keyframes screenIn{from{opacity:0;transform:translateY(18px) scale(.99)}to{opacity:1;transform:none}}
+
+.mono-label{font-family:var(--font-display);letter-spacing:.22em;text-transform:uppercase;font-size:.62rem;color:var(--cyan)}
+
+/* ================= PANTALLA INICIO ================= */
+#start{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:26px;padding:20px 0}
+#start.active{display:flex}
+.globe{
+  width:120px;height:120px;border-radius:50%;position:relative;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(34,224,255,.55), transparent 55%),
+    conic-gradient(from 0deg, rgba(34,224,255,.25), rgba(255,61,154,.25), rgba(79,255,176,.25), rgba(34,224,255,.25));
+  border:1px solid rgba(120,200,255,.4);
+  box-shadow:0 0 60px rgba(34,224,255,.35), inset 0 0 40px rgba(0,0,0,.5);
+  animation:spin 14s linear infinite;
+}
+.globe::before,.globe::after{content:"";position:absolute;inset:8px;border-radius:50%;border:1px solid rgba(170,220,255,.3)}
+.globe::after{inset:8px 30px;border-color:rgba(255,61,154,.4)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.title{
+  font-family:var(--font-display);font-weight:900;font-size:clamp(2.1rem,7vw,3.6rem);
+  line-height:1;letter-spacing:.04em;
+  background:linear-gradient(90deg,var(--cyan),var(--green),var(--magenta));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 40px rgba(34,224,255,.25);
+}
+.subtitle{font-size:clamp(1rem,3.5vw,1.35rem);color:var(--ink-dim);font-weight:500;letter-spacing:.02em}
+.levels-preview{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:520px}
+.chip{padding:10px 16px;border-radius:999px;font-weight:600;font-size:.9rem;border:1px solid var(--panel-brd);background:rgba(255,255,255,.03)}
+
+.btn{
+  font-family:var(--font-display);font-weight:700;letter-spacing:.06em;
+  border:none;cursor:pointer;color:#02121a;font-size:1.05rem;
+  padding:18px 34px;border-radius:16px;position:relative;
+  background:linear-gradient(135deg,var(--cyan),var(--green));
+  box-shadow:0 12px 34px rgba(34,224,255,.4), inset 0 1px 0 rgba(255,255,255,.5);
+  transition:transform .12s, box-shadow .2s, filter .2s;
+  text-transform:uppercase;
+}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 18px 44px rgba(34,224,255,.55)}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+.btn.secondary{background:rgba(255,255,255,.06);color:var(--ink);border:1px solid var(--panel-brd);box-shadow:none}
+.btn.secondary:hover{background:rgba(255,255,255,.12)}
+.btn.magenta{background:linear-gradient(135deg,var(--magenta),#B23BFF);color:#fff;box-shadow:0 12px 34px rgba(255,61,154,.4)}
+
+.hint{font-size:.85rem;color:var(--ink-dim)}
+
+/* ================= HUD (durante juego) ================= */
+#hud{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.hud-cell{display:flex;flex-direction:column;gap:2px}
+.hud-cell .k{font-size:.62rem;letter-spacing:.15em;color:var(--ink-dim);text-transform:uppercase}
+.hud-cell .v{font-family:var(--font-display);font-weight:700;font-size:1.05rem}
+.hud-score .v{color:var(--amber)}
+.hud-spacer{flex:1}
+.streak{display:flex;align-items:center;gap:6px;font-weight:700;font-size:1.05rem;color:var(--magenta);opacity:0;transform:scale(.6);transition:.25s}
+.streak.show{opacity:1;transform:scale(1)}
+.streak.pop{animation:streakpop .4s}
+@keyframes streakpop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+
+.level-tag{font-family:var(--font-display);font-size:.7rem;font-weight:700;padding:5px 12px;border-radius:999px;letter-spacing:.1em}
+.level-1{background:rgba(79,255,176,.15);color:var(--green);border:1px solid rgba(79,255,176,.4)}
+.level-2{background:rgba(255,194,75,.15);color:var(--amber);border:1px solid rgba(255,194,75,.4)}
+.level-3{background:rgba(255,92,108,.15);color:var(--red);border:1px solid rgba(255,92,108,.4)}
+
+/* progreso */
+.progress-wrap{margin-bottom:8px}
+.progress-top{display:flex;justify-content:space-between;font-size:.8rem;color:var(--ink-dim);margin-bottom:6px;font-weight:600}
+.bar{height:9px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar > i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--cyan),var(--magenta));transition:width .4s cubic-bezier(.2,.8,.2,1)}
+
+/* temporizador */
+.timer-wrap{display:flex;align-items:center;gap:10px;margin:14px 0 4px}
+.timer-bar{flex:1;height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.timer-bar > i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));transition:width 1s linear}
+.timer-num{font-family:var(--font-display);font-weight:700;min-width:34px;text-align:right}
+.timer-num.warn{color:var(--red);animation:pulse .6s infinite}
+@keyframes pulse{50%{opacity:.4}}
+
+/* ================= TARJETA PREGUNTA ================= */
+#quiz{display:none}
+#quiz.active{display:block}
+.qcard{padding:24px 22px}
+.qtype{margin-bottom:12px}
+.question{font-family:var(--font-display);font-weight:700;font-size:clamp(1.15rem,4.5vw,1.55rem);line-height:1.35;margin-bottom:20px}
+.answers{display:grid;gap:12px}
+.answer{
+  display:flex;align-items:center;gap:14px;text-align:left;width:100%;
+  padding:16px 18px;border-radius:14px;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1.5px solid var(--panel-brd);
+  color:var(--ink);font-size:1.05rem;font-weight:600;font-family:var(--font-body);
+  transition:transform .1s, background .2s, border-color .2s, box-shadow .2s;
+}
+.answer .key{
+  width:34px;height:34px;flex:0 0 34px;border-radius:9px;display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:700;font-size:.95rem;
+  background:rgba(34,224,255,.14);color:var(--cyan);border:1px solid rgba(34,224,255,.3);
+  transition:.2s;
+}
+.answer:hover:not(:disabled){background:rgba(34,224,255,.09);border-color:var(--cyan);transform:translateX(4px)}
+.answer:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.answer:disabled{cursor:default}
+.answer.correct{background:rgba(79,255,176,.16);border-color:var(--green);box-shadow:0 0 26px rgba(79,255,176,.3);animation:goodpop .45s}
+.answer.correct .key{background:var(--green);color:#02231a}
+.answer.wrong{background:rgba(255,92,108,.16);border-color:var(--red);animation:shake .4s}
+.answer.wrong .key{background:var(--red);color:#2a0409}
+@keyframes goodpop{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+/* feedback */
+.feedback{margin-top:18px;padding:16px 18px;border-radius:14px;display:none;animation:screenIn .35s}
+.feedback.show{display:block}
+.feedback .verdict{font-family:var(--font-display);font-weight:700;font-size:1.15rem;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.feedback .explain{color:var(--ink);font-size:1rem;line-height:1.5;opacity:.92}
+.feedback.ok{background:rgba(79,255,176,.1);border:1px solid rgba(79,255,176,.35)}
+.feedback.ok .verdict{color:var(--green)}
+.feedback.no{background:rgba(255,92,108,.1);border:1px solid rgba(255,92,108,.35)}
+.feedback.no .verdict{color:var(--red)}
+.gain{font-family:var(--font-display);font-weight:700;color:var(--amber);margin-left:auto;font-size:1rem}
+
+.next-row{margin-top:18px;display:flex;justify-content:flex-end}
+.motiv{position:fixed;top:22px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:50;
+  font-family:var(--font-display);font-weight:700;padding:12px 22px;border-radius:999px;
+  background:rgba(12,20,40,.9);border:1px solid var(--cyan);color:var(--cyan);
+  box-shadow:0 10px 40px rgba(34,224,255,.4);opacity:0;pointer-events:none;transition:.35s}
+.motiv.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ================= RESULTADOS ================= */
+#result{display:none;text-align:center}
+#result.active{display:block}
+.result-card{padding:34px 24px}
+.result-title{font-family:var(--font-display);font-weight:900;font-size:clamp(1.6rem,6vw,2.4rem);margin-bottom:6px;
+  background:linear-gradient(90deg,var(--cyan),var(--magenta));-webkit-background-clip:text;background-clip:text;color:transparent}
+.big-xp{font-family:var(--font-display);font-weight:900;font-size:clamp(3rem,14vw,5rem);color:var(--amber);
+  text-shadow:0 0 50px rgba(255,194,75,.4);line-height:1;margin:10px 0}
+.big-xp small{font-size:.3em;color:var(--ink-dim);letter-spacing:.2em;display:block;margin-top:6px}
+.rank{font-family:var(--font-display);font-weight:700;font-size:clamp(1.1rem,4.5vw,1.5rem);margin:14px 0 6px}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:24px 0}
+.stat{padding:16px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--panel-brd)}
+.stat .n{font-family:var(--font-display);font-weight:700;font-size:1.6rem}
+.stat .l{font-size:.78rem;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.stat.good .n{color:var(--green)} .stat.bad .n{color:var(--red)}
+.stat.acc .n{color:var(--cyan)} .stat.time .n{color:var(--amber)}
+.result-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.result-actions .btn{font-size:.9rem;padding:15px 22px}
+
+/* repaso */
+#review{display:none}
+#review.active{display:block}
+.review-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.review-head h2{font-family:var(--font-display);font-size:1.3rem}
+.rev-item{padding:16px 18px;margin-bottom:12px}
+.rev-q{font-weight:700;font-size:1.02rem;margin-bottom:10px;display:flex;gap:8px}
+.rev-q .ix{font-family:var(--font-display);color:var(--cyan);flex:0 0 auto}
+.rev-line{font-size:.95rem;padding:6px 10px;border-radius:8px;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+.rev-line.yours-wrong{background:rgba(255,92,108,.12);color:var(--red)}
+.rev-line.correct{background:rgba(79,255,176,.12);color:var(--green)}
+.rev-line.timeout{background:rgba(255,194,75,.1);color:var(--amber)}
+.rev-exp{font-size:.9rem;color:var(--ink-dim);margin-top:6px;line-height:1.45}
+
+/* confetti canvas */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
+
+@media(max-width:540px){
+  .qcard{padding:20px 16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .hud-cell .v{font-size:.95rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .globe{animation:none!important}
+}
+</style>
+</head>
+<body>
+<canvas id="grid-bg"></canvas>
+<canvas id="fx"></canvas>
+<div class="motiv" id="motiv"></div>
+
+<div class="app">
+
+  <!-- ===================== INICIO ===================== -->
+  <section id="start" class="screen active">
+    <div class="globe" aria-hidden="true"></div>
+    <div>
+      <div class="mono-label">Repaso interactivo · Tipos de redes</div>
+      <h1 class="title">NETWORK<br>CHALLENGE 🌐</h1>
+    </div>
+    <p class="subtitle">¿Qué tanto sabes sobre redes?</p>
+    <div class="levels-preview">
+      <span class="chip">🟢 Nivel 1 · Novato</span>
+      <span class="chip">🟡 Nivel 2 · Conectado</span>
+      <span class="chip">🔴 Nivel 3 · Experto</span>
+    </div>
+    <button class="btn" id="startBtn">COMENZAR RETO 🚀</button>
+    <p class="hint" id="startHint"></p>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="quiz" class="screen">
+    <div id="hud">
+      <div class="hud-cell hud-score">
+        <span class="k">Puntuación</span>
+        <span class="v"><span id="scoreVal">0</span> XP</span>
+      </div>
+      <span class="level-tag level-1" id="levelTag">🟢 NOVATO</span>
+      <div class="hud-spacer"></div>
+      <div class="streak" id="streak"><span id="streakFire">🔥</span><span id="streakTxt">Racha x2</span></div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span id="qCounter">Pregunta 1/20</span>
+        <span id="qTypeLabel"></span>
+      </div>
+      <div class="bar"><i id="progressBar"></i></div>
+    </div>
+
+    <div class="glass qcard">
+      <div class="mono-label qtype" id="qTypeTag">OPCIÓN MÚLTIPLE</div>
+      <div class="question" id="questionText">—</div>
+      <div class="answers" id="answers"></div>
+
+      <div class="timer-wrap">
+        <div class="timer-bar"><i id="timerBar"></i></div>
+        <span class="timer-num" id="timerNum">20</span>
+      </div>
+
+      <div class="feedback" id="feedback">
+        <div class="verdict" id="verdict"></div>
+        <div class="explain" id="explain"></div>
+      </div>
+
+      <div class="next-row" id="nextRow" style="display:none">
+        <button class="btn" id="nextBtn">SIGUIENTE ➜</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== RESULTADOS ===================== -->
+  <section id="result" class="screen">
+    <div class="glass result-card">
+      <div class="result-title" id="resultTitle">¡MISIÓN COMPLETADA! 🌐🚀</div>
+      <div class="big-xp"><span id="finalXP">0</span><small>XP CONSEGUIDO</small></div>
+      <div class="rank" id="rankText">Nivel: —</div>
+
+      <div class="stats-grid">
+        <div class="stat good"><div class="n" id="stCorrect">0</div><div class="l">✅ Correctas</div></div>
+        <div class="stat bad"><div class="n" id="stWrong">0</div><div class="l">❌ Incorrectas</div></div>
+        <div class="stat acc"><div class="n" id="stAcc">0%</div><div class="l">🎯 Precisión</div></div>
+        <div class="stat time"><div class="n" id="stTime">0s</div><div class="l">⏱️ Tiempo prom.</div></div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn" id="againBtn">🔄 Jugar de nuevo</button>
+        <button class="btn magenta" id="reviewBtn">📚 Repasar respuestas</button>
+        <button class="btn secondary" id="homeBtn">🏠 Volver al inicio</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== REPASO ===================== -->
+  <section id="review" class="screen">
+    <div class="review-head">
+      <h2>📚 Repaso de respuestas</h2>
+      <button class="btn secondary" id="backToResult">← Volver</button>
+    </div>
+    <div id="reviewList"></div>
+  </section>
+
+</div>
+
+<script>
+/* ==================================================================
+   ⚙️  CONFIGURACIÓN — modifica todo fácilmente aquí
+   ================================================================== */
+const CONFIG = {
+  questionsPerGame: 18,   // cuántas preguntas por partida (15–20 recomendado)
+  timePerQuestion: 20,    // segundos por pregunta
+  pointsCorrect: 100,     // puntos base por acierto
+  speedBonusMax: 50,      // bonus máximo por responder rápido
+  // Reparto por nivel (deben sumar aprox. questionsPerGame; se ajusta solo)
+  mix: { 1: 6, 2: 6, 3: 6 }
+};
+
+/* ==================================================================
+   🧠  BANCO DE PREGUNTAS  (solo con la información proporcionada)
+   level: 1 Novato · 2 Conectado · 3 Experto
+   c = índice (0-3) de la respuesta correcta
+   ================================================================== */
+const QUESTIONS = [
+  /* ---------- NIVEL 1 · NOVATO 🟢 ---------- */
+  {level:1,type:"Concepto básico",q:"¿Cuál es la red de área personal, la más pequeña?",
+   a:["LAN","PAN","WAN","GAN"],c:1,
+   e:"PAN (Personal Area Network) es la red más pequeña y conecta dispositivos personales a corta distancia."},
+  {level:1,type:"Concepto básico",q:"¿Qué significan las siglas LAN?",
+   a:["Red de Área Local","Red de Área Amplia","Red Personal","Red Global"],c:0,
+   e:"LAN significa Red de Área Local y conecta dispositivos dentro de un mismo espacio local."},
+  {level:1,type:"Concepto básico",q:"¿Cuál es la red de mayor alcance de todas?",
+   a:["MAN","WAN","GAN","LAN"],c:2,
+   e:"GAN es la red global: la de mayor alcance. Su ejemplo principal es Internet."},
+  {level:1,type:"¿Cuál es el ejemplo?",q:"El Wi-Fi de tu casa es un ejemplo de…",
+   a:["PAN","LAN","MAN","GAN"],c:1,
+   e:"El Wi-Fi de una casa es una LAN: conecta dispositivos dentro de un espacio local."},
+  {level:1,type:"Concepto básico",q:"¿Cuántos elementos se necesitan para que exista una red?",
+   a:["Uno","Dos","Tres","Cuatro"],c:2,
+   e:"Se necesitan tres: dispositivos, una conexión (física o lógica) y un objetivo de compartir información."},
+  {level:1,type:"¿Cuál es el ejemplo?",q:"¿Cuál es el ejemplo más representativo de una GAN?",
+   a:["El Wi-Fi de la escuela","Internet","Un cable de red","Un smartwatch"],c:1,
+   e:"Internet es el ejemplo principal de una GAN, ya que conecta redes de todo el planeta."},
+  {level:1,type:"Concepto básico",q:"¿Qué red conecta varias LAN dentro de una misma ciudad?",
+   a:["PAN","MAN","GAN","WAN"],c:1,
+   e:"MAN (Red Metropolitana) conecta varias redes LAN dentro de una misma ciudad."},
+  {level:1,type:"Concepto básico",q:"Una WAN conecta redes a…",
+   a:["Corta distancia","Una sola habitación","Grandes distancias, países o continentes","Solo una casa"],c:2,
+   e:"La WAN (Red de Área Amplia) conecta redes a grandes distancias, incluso entre países o continentes."},
+  {level:1,type:"Elemento de red",q:"¿Cuál de estos es un 'dispositivo' según la introducción?",
+   a:["Un cable de fibra","Una laptop","Una señal Wi-Fi","Un programa"],c:1,
+   e:"Los dispositivos son equipos como celulares, laptops, tablets y computadoras."},
+
+  /* ---------- NIVEL 2 · CONECTADO 🟡 ---------- */
+  {level:2,type:"¿Cuál es el ejemplo?",q:"¿Cuál de estos es un ejemplo típico de una PAN?",
+   a:["El Wi-Fi de una escuela","Celular + audífonos inalámbricos","Internet","Dos oficinas en una ciudad"],c:1,
+   e:"La PAN conecta dispositivos personales a corta distancia, como un celular con sus audífonos inalámbricos."},
+  {level:2,type:"Característica",q:"¿Qué red puede tener cientos de dispositivos conectados dentro de un espacio local?",
+   a:["PAN","LAN","GAN","VPN"],c:1,
+   e:"Una LAN puede tener cientos de dispositivos conectados dentro de un mismo espacio local."},
+  {level:2,type:"Característica",q:"¿Qué tecnología puede usar una MAN para lograr una conexión rápida?",
+   a:["Solo Bluetooth","Fibra óptica","Solo satélites","Cables USB"],c:1,
+   e:"Una MAN puede utilizar fibra óptica para lograr una conexión rápida entre redes de la ciudad."},
+  {level:2,type:"¿Cuál es el ejemplo?",q:"Telmex e Izzi se mencionan como ejemplos de proveedores que usan…",
+   a:["PAN","WAN","GAN privada","MAN"],c:1,
+   e:"Los proveedores de Internet como Telmex e Izzi utilizan redes WAN para conectar a sus usuarios con otras redes."},
+  {level:2,type:"Física vs. lógica",q:"¿Qué describe mejor a una red física?",
+   a:["Usa software para comunicarse","Elementos que existen y pueden tocarse, como cables","Un túnel seguro por Internet","Solo señales Wi-Fi"],c:1,
+   e:"La red física está formada por elementos tangibles que pueden tocarse, como cables y dispositivos."},
+  {level:2,type:"Física vs. lógica",q:"Una red lógica se caracteriza por…",
+   a:["No necesitar ninguna infraestructura","Usar la infraestructura física y software para comunicarse","Ser siempre por cable","Ser la red más grande"],c:1,
+   e:"La red lógica utiliza la infraestructura física para crear una comunicación determinada mediante software."},
+  {level:2,type:"VPN",q:"Una VPN crea principalmente…",
+   a:["Una red física con cables","Un túnel seguro y privado usando Internet","Una red de área personal","Una nueva ciudad de redes"],c:1,
+   e:"Una VPN crea un túnel seguro y privado utilizando Internet; es un ejemplo de red lógica."},
+  {level:2,type:"Diferencia",q:"¿Qué diferencia a una MAN de una WAN?",
+   a:["La MAN cubre una ciudad; la WAN cubre países o continentes","Son exactamente iguales","La WAN es más pequeña que la PAN","La MAN solo usa Bluetooth"],c:0,
+   e:"La MAN conecta redes dentro de una ciudad, mientras que la WAN abarca grandes distancias como países o continentes."},
+  {level:2,type:"Característica",q:"En una PAN, ¿qué tan importante es la velocidad y la cantidad de información?",
+   a:["Es crítica y enorme","Maneja poca información y la velocidad no es tan importante","Necesita cables submarinos","Requiere satélites"],c:1,
+   e:"La PAN maneja poca información y la velocidad no es tan importante, por su corto alcance."},
+  {level:2,type:"GAN",q:"¿Qué tecnologías usa una GAN para conectar redes de todo el planeta?",
+   a:["Solo Wi-Fi doméstico","Cables submarinos y satélites","Únicamente Bluetooth","Solo fibra dentro de una casa"],c:1,
+   e:"La GAN conecta redes de todo el planeta mediante tecnologías como cables submarinos y satélites."},
+
+  /* ---------- NIVEL 3 · EXPERTO 🔴 ---------- */
+  {level:3,type:"Situación",q:"Tu celular está conectado a tus audífonos inalámbricos. ¿Qué tipo de red representa principalmente?",
+   a:["LAN","WAN","PAN","GAN"],c:2,
+   e:"Es una PAN: conecta dispositivos personales a corta distancia, como un celular con sus audífonos."},
+  {level:3,type:"Situación",q:"Una empresa tiene oficinas en diferentes puntos de una MISMA ciudad y quiere conectarlas. ¿Qué red usaría?",
+   a:["PAN","LAN","MAN","GAN"],c:2,
+   e:"Una MAN conecta varias LAN dentro de una misma ciudad, ideal para oficinas en distintos puntos."},
+  {level:3,type:"Ordenar",q:"Ordena de MENOR a MAYOR alcance. ¿Cuál es correcto?",
+   a:["LAN → PAN → MAN → WAN → GAN","PAN → LAN → MAN → WAN → GAN","PAN → MAN → LAN → GAN → WAN","GAN → WAN → MAN → LAN → PAN"],c:1,
+   e:"De menor a mayor alcance: PAN → LAN → MAN → WAN → GAN."},
+  {level:3,type:"Situación",q:"Quieres acceder de forma segura a la red de tu universidad desde tu casa. ¿Qué usarías?",
+   a:["Una VPN","Una PAN","Una MAN","Una GAN privada nueva"],c:0,
+   e:"Una VPN crea un túnel seguro que permite acceder de forma remota a la red de una universidad o empresa."},
+  {level:3,type:"Situación",q:"Una empresa necesita conectar dos sucursales ubicadas en países diferentes. ¿Qué red corresponde?",
+   a:["LAN","MAN","WAN","PAN"],c:2,
+   e:"Conectar redes a grandes distancias entre países corresponde a una WAN."},
+  {level:3,type:"Diferencia",q:"¿Cuál es la diferencia principal entre una red física y una lógica?",
+   a:["La física usa software y la lógica cables","La física es infraestructura tangible; la lógica usa software para comunicarse","No hay ninguna diferencia","La lógica siempre es más grande"],c:1,
+   e:"La física corresponde a infraestructura tangible como cables; la lógica usa software para establecer la comunicación."},
+  {level:3,type:"VPN",q:"¿Por qué una VPN puede funcionar sobre distintos tipos de redes?",
+   a:["Porque siempre es una LAN","Porque depende de la configuración lógica/software y no solo del tamaño de la red","Porque solo funciona en GAN","Porque no usa Internet"],c:1,
+   e:"La VPN depende de la configuración lógica/software, por eso funciona sobre diferentes tipos de redes."},
+  {level:3,type:"Situación",q:"Usas Internet para ver una página alojada en un servidor de otro continente. ¿Qué tipo de red global lo hace posible?",
+   a:["PAN","MAN","GAN","VPN"],c:2,
+   e:"Internet es una GAN: conecta redes de todo el planeta mediante cables submarinos y satélites."},
+  {level:3,type:"Situación",q:"Tu celular se sincroniza con tu smartwatch. ¿Qué red es y por qué?",
+   a:["LAN, porque hay Wi-Fi","PAN, porque conecta dispositivos personales a corta distancia","WAN, porque cubre países","MAN, porque cubre la ciudad"],c:1,
+   e:"Es una PAN: conecta dispositivos personales (celular + smartwatch) a corta distancia."},
+  {level:3,type:"Diferencia",q:"¿En qué se diferencia una LAN de una WAN?",
+   a:["La LAN es un espacio local; la WAN cubre grandes distancias","La LAN es global y la WAN local","Son lo mismo","La WAN solo conecta audífonos"],c:0,
+   e:"La LAN conecta dispositivos en un espacio local; la WAN abarca grandes distancias, países o continentes."}
+];
+
+/* ==================================================================
+   🎮  LÓGICA DEL JUEGO
+   ================================================================== */
+const $ = id => document.getElementById(id);
+const LETTERS = ["A","B","C","D"];
+const RANKS = [
+  {min:90, name:"MAESTRO DE REDES 🧠", emoji:"🌐🚀"},
+  {min:75, name:"EXPERTO EN REDES 🌐", emoji:"🌐"},
+  {min:55, name:"TÉCNICO CONECTADO 🟡", emoji:"⚡"},
+  {min:35, name:"APRENDIZ DE RED 🟢", emoji:"📡"},
+  {min:0,  name:"NOVATO EN FORMACIÓN 🔰", emoji:"💪"}
+];
+const MOTIV = {
+  correct:["¡Excelente conexión! ⚡","¡Respuesta correcta! 🌐","¡Eres un experto en redes! 🧠","¡Paquete entregado! 📦"],
+  wrong:["¡Casi! Sigue intentando 💪","Se perdió el paquete… ¡reconecta! 🔌"],
+  streak:["¡Racha increíble! 🔥","¡Ancho de banda máximo! 🚀","¡Imparable! ⚡"]
+};
+
+let state = null;
+
+function buildDeck(){
+  // Selecciona preguntas por nivel según el mix, sin repetir, y las ordena por nivel
+  const byLevel = {1:[],2:[],3:[]};
+  QUESTIONS.forEach(q=>byLevel[q.level].push(q));
+  let deck=[];
+  [1,2,3].forEach(lvl=>{
+    const pool=shuffle([...byLevel[lvl]]);
+    const take=Math.min(CONFIG.mix[lvl]||0, pool.length);
+    deck=deck.concat(pool.slice(0,take));
+  });
+  // Ajusta al total deseado
+  deck=deck.slice(0,CONFIG.questionsPerGame);
+  // Rellena si faltan (por si un nivel tiene pocas)
+  if(deck.length<CONFIG.questionsPerGame){
+    const rest=shuffle(QUESTIONS.filter(q=>!deck.includes(q)));
+    deck=deck.concat(rest.slice(0,CONFIG.questionsPerGame-deck.length));
+  }
+  // Mantener orden por nivel (dificultad progresiva)
+  deck.sort((a,b)=>a.level-b.level);
+  return deck;
+}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+
+function startGame(){
+  state={
+    deck:buildDeck(), i:0, score:0, correct:0, wrong:0, streak:0,
+    times:[], answered:false, timer:null, timeLeft:CONFIG.timePerQuestion,
+    log:[]
+  };
+  showScreen("quiz");
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q=state.deck[state.i];
+  state.answered=false;
+  state.timeLeft=CONFIG.timePerQuestion;
+  state.qStart=Date.now();
+
+  // HUD nivel
+  const tag=$("levelTag");
+  tag.className="level-tag level-"+q.level;
+  tag.textContent = q.level===1?"🟢 NOVATO":q.level===2?"🟡 CONECTADO":"🔴 EXPERTO";
+
+  // progreso
+  $("qCounter").textContent=`Pregunta ${state.i+1}/${state.deck.length}`;
+  $("progressBar").style.width=((state.i)/state.deck.length*100)+"%";
+  $("qTypeTag").textContent=q.type.toUpperCase();
+  $("questionText").textContent=q.q;
+
+  // respuestas (opciones barajadas)
+  const order=shuffle(q.a.map((txt,idx)=>({txt,idx})));
+  state.correctBtnIdx=order.findIndex(o=>o.idx===q.c);
+  const box=$("answers"); box.innerHTML="";
+  order.forEach((opt,pos)=>{
+    const b=document.createElement("button");
+    b.className="answer";
+    b.innerHTML=`<span class="key">${LETTERS[pos]}</span><span>${opt.txt}</span>`;
+    b.onclick=()=>choose(pos, opt.idx===q.c);
+    box.appendChild(b);
+  });
+
+  // reset feedback / next
+  $("feedback").className="feedback";
+  $("nextRow").style.display="none";
+  $("scoreVal").textContent=state.score;
+
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(state.timer);
+  const bar=$("timerBar"), num=$("timerNum");
+  bar.style.transition="none"; bar.style.width="100%"; num.textContent=CONFIG.timePerQuestion;
+  num.classList.remove("warn");
+  void bar.offsetWidth;
+  bar.style.transition="width 1s linear";
+  bar.style.width=((state.timeLeft-1)/CONFIG.timePerQuestion*100)+"%";
+
+  state.timer=setInterval(()=>{
+    state.timeLeft--;
+    num.textContent=Math.max(state.timeLeft,0);
+    bar.style.width=(Math.max(state.timeLeft-1,0)/CONFIG.timePerQuestion*100)+"%";
+    if(state.timeLeft<=5) num.classList.add("warn");
+    if(state.timeLeft<=0){clearInterval(state.timer); timeout();}
+  },1000);
+}
+
+function choose(pos, isCorrect){
+  if(state.answered) return;
+  state.answered=true;
+  clearInterval(state.timer);
+
+  const elapsed=(Date.now()-state.qStart)/1000;
+  state.times.push(elapsed);
+
+  const btns=[...$("answers").children];
+  btns.forEach(b=>b.disabled=true);
+
+  let gain=0;
+  if(isCorrect){
+    const speedBonus=Math.round(CONFIG.speedBonusMax*Math.max(0,(CONFIG.timePerQuestion-elapsed)/CONFIG.timePerQuestion));
+    gain=CONFIG.pointsCorrect+speedBonus;
+    state.score+=gain; state.correct++; state.streak++;
+    btns[pos].classList.add("correct");
+    goodFeedback(gain, speedBonus);
+    if(state.streak>=2) showStreak();
+    if(state.streak>=3) confetti();
+    flashMotiv(state.streak>=3 ? pick(MOTIV.streak) : pick(MOTIV.correct), true);
+  }else{
+    state.wrong++; state.streak=0; hideStreak();
+    btns[pos].classList.add("wrong");
+    btns[state.correctBtnIdx].classList.add("correct");
+    badFeedback();
+    flashMotiv(pick(MOTIV.wrong), false);
+  }
+
+  logAnswer(pos, isCorrect, false);
+  $("scoreVal").textContent=state.score;
+  $("nextRow").style.display="flex";
+  $("nextBtn").focus();
+}
+
+function timeout(){
+  if(state.answered) return;
+  state.answered=true;
+  state.wrong++; state.streak=0; hideStreak();
+  state.times.push(CONFIG.timePerQuestion);
+  const btns=[...$("answers").children];
+  btns.forEach(b=>b.disabled=true);
+  btns[state.correctBtnIdx].classList.add("correct");
+
+  const fb=$("feedback"); fb.className="feedback no show";
+  $("verdict").innerHTML="⏱️ ¡TIEMPO AGOTADO!";
+  $("explain").textContent=state.deck[state.i].e;
+  logAnswer(-1, false, true);
+  $("nextRow").style.display="flex";
+  $("nextBtn").focus();
+  flashMotiv("Se acabó el tiempo ⏱️", false);
+}
+
+function goodFeedback(gain, bonus){
+  const fb=$("feedback"); fb.className="feedback ok show";
+  $("verdict").innerHTML=`✅ CORRECTA <span class="gain">+${gain} XP${bonus>0?` (⚡+${bonus})`:""}</span>`;
+  $("explain").textContent=state.deck[state.i].e;
+}
+function badFeedback(){
+  const fb=$("feedback"); fb.className="feedback no show";
+  $("verdict").innerHTML="❌ INCORRECTA";
+  $("explain").textContent=state.deck[state.i].e;
+}
+
+function logAnswer(chosenPos, isCorrect, timedout){
+  const q=state.deck[state.i];
+  const btns=[...$("answers").children];
+  const chosenText = chosenPos>=0 ? btns[chosenPos].querySelector("span:last-child").textContent : null;
+  state.log.push({q:q.q, correctText:q.a[q.c], chosenText, isCorrect, timedout, e:q.e});
+}
+
+function next(){
+  state.i++;
+  $("progressBar").style.width=(state.i/state.deck.length*100)+"%";
+  if(state.i>=state.deck.length) endGame();
+  else renderQuestion();
+}
+
+/* ------- racha / motivación ------- */
+function showStreak(){
+  const s=$("streak");
+  const fire = state.streak>=10?"🔥🔥🔥":state.streak>=5?"🔥🔥":"🔥";
+  $("streakFire").textContent=fire;
+  $("streakTxt").textContent="Racha x"+state.streak;
+  s.classList.add("show"); s.classList.remove("pop"); void s.offsetWidth; s.classList.add("pop");
+}
+function hideStreak(){ $("streak").classList.remove("show"); }
+function flashMotiv(msg, ok){
+  const m=$("motiv"); m.textContent=msg;
+  m.style.borderColor = ok?"var(--green)":"var(--amber)";
+  m.style.color = ok?"var(--green)":"var(--amber)";
+  m.classList.add("show");
+  clearTimeout(m._t); m._t=setTimeout(()=>m.classList.remove("show"),1400);
+}
+function pick(a){return a[Math.random()*a.length|0];}
+
+/* ------- fin ------- */
+function endGame(){
+  const total=state.correct+state.wrong;
+  const acc=total?Math.round(state.correct/total*100):0;
+  const avg=state.times.length?(state.times.reduce((s,t)=>s+t,0)/state.times.length):0;
+  const rank=RANKS.find(r=>acc>=r.min);
+
+  $("finalXP").textContent=state.score.toLocaleString();
+  $("rankText").textContent="Nivel: "+rank.name;
+  $("resultTitle").innerHTML="¡MISIÓN COMPLETADA! "+rank.emoji;
+  $("stCorrect").textContent=state.correct;
+  $("stWrong").textContent=state.wrong;
+  $("stAcc").textContent=acc+"%";
+  $("stTime").textContent=avg.toFixed(1)+"s";
+
+  showScreen("result");
+  if(acc>=55) confetti(140);
+}
+
+function buildReview(){
+  const list=$("reviewList"); list.innerHTML="";
+  state.log.forEach((item,i)=>{
+    const el=document.createElement("div");
+    el.className="glass rev-item";
+    let lines="";
+    if(item.timedout){
+      lines+=`<div class="rev-line timeout">⏱️ Sin responder (tiempo agotado)</div>`;
+      lines+=`<div class="rev-line correct">✅ Correcta: ${item.correctText}</div>`;
+    }else if(item.isCorrect){
+      lines+=`<div class="rev-line correct">✅ Tu respuesta: ${item.chosenText}</div>`;
+    }else{
+      lines+=`<div class="rev-line yours-wrong">❌ Tu respuesta: ${item.chosenText}</div>`;
+      lines+=`<div class="rev-line correct">✅ Correcta: ${item.correctText}</div>`;
+    }
+    el.innerHTML=`<div class="rev-q"><span class="ix">${i+1}.</span><span>${item.q}</span></div>${lines}<div class="rev-exp">💡 ${item.e}</div>`;
+    list.appendChild(el);
+  });
+}
+
+/* ------- navegación pantallas ------- */
+function showScreen(id){
+  ["start","quiz","result","review"].forEach(s=>$(s).classList.toggle("active", s===id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ==================================================================
+   🎇  EFECTOS: malla de fondo + confetti
+   ================================================================== */
+// Malla de red animada
+(function(){
+  const c=$("grid-bg"), x=c.getContext("2d"); let W,H,nodes;
+  const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight;
+    const count=Math.min(70, Math.floor(W*H/22000));
+    nodes=Array.from({length:count},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35}));}
+  resize(); addEventListener("resize",resize);
+  function draw(){
+    x.clearRect(0,0,W,H);
+    for(const n of nodes){n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;}
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.hypot(dx,dy);
+        if(d<130){x.strokeStyle="rgba(34,224,255,"+(1-d/130)*.22+")";x.lineWidth=1;
+          x.beginPath();x.moveTo(nodes[i].x,nodes[i].y);x.lineTo(nodes[j].x,nodes[j].y);x.stroke();}
+      }
+    }
+    for(const n of nodes){x.fillStyle="rgba(120,200,255,.5)";x.beginPath();x.arc(n.x,n.y,1.6,0,7);x.fill();}
+    if(!reduce) requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// Confetti
+function confetti(n=60){
+  const c=$("fx"), x=c.getContext("2d");
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  c.width=innerWidth;c.height=innerHeight;
+  const colors=["#22E0FF","#FF3D9A","#4FFFB0","#FFC24B","#B23BFF"];
+  let parts=Array.from({length:n},()=>({x:Math.random()*c.width,y:-20,
+    vx:(Math.random()-.5)*6,vy:Math.random()*4+3,s:Math.random()*7+4,
+    col:colors[Math.random()*colors.length|0],rot:Math.random()*6,vr:(Math.random()-.5)*.3}));
+  let t=0;
+  (function run(){
+    x.clearRect(0,0,c.width,c.height);t++;
+    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.12;p.rot+=p.vr;
+      x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.fillStyle=p.col;
+      x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore();});
+    if(t<120) requestAnimationFrame(run); else x.clearRect(0,0,c.width,c.height);
+  })();
+}
+
+/* ==================================================================
+   🔌  EVENTOS
+   ================================================================== */
+$("startHint").textContent=`${CONFIG.questionsPerGame} preguntas · ${CONFIG.timePerQuestion}s cada una · 3 niveles`;
+$("startBtn").onclick=startGame;
+$("nextBtn").onclick=next;
+$("againBtn").onclick=startGame;
+$("homeBtn").onclick=()=>showScreen("start");
+$("reviewBtn").onclick=()=>{buildReview();showScreen("review");};
+$("backToResult").onclick=()=>showScreen("result");
+
+// Atajo: Enter para avanzar cuando ya se respondió
+addEventListener("keydown",e=>{
+  if(e.key==="Enter" && state && state.answered && $("quiz").classList.contains("active")) next();
+});
+</script>
+</body>
+</html>
